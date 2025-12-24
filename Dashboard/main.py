@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import os
 
 # -----------------------------------------------------------------------------
 # 1. CONFIGURACIÓN DE LA PÁGINA
@@ -42,27 +43,40 @@ def calculate_hts_sum(row):
 
 @st.cache_data
 def load_data():
-    path = 'data/LIGIE_HTS_Dashboard.xlsx'
+    # 1. Obtiene la ruta absoluta de la carpeta donde vive main.py
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    
+    # 2. Construye la ruta al excel
+    file_path = os.path.join(base_path, 'data', 'LIGIE_HTS_Dashboard.xlsx')
+    
+    # --- DEBUGGING (Verás esto en los logs de Streamlit si falla) ---
+    print(f"Ruta construida: {file_path}")
+    if not os.path.exists(file_path):
+        print(f"¡ALERTA! El archivo no existe en: {file_path}")
+        print(f"Contenido de {base_path}: {os.listdir(base_path)}")
+        if os.path.exists(os.path.join(base_path, 'data')):
+             print(f"Contenido de data: {os.listdir(os.path.join(base_path, 'data'))}")
+    # ----------------------------------------------------------------
     
     # 1. Carga LIGIE
-    ligie = pd.read_excel(path, sheet_name='LIGIE', dtype=str)
+    ligie = pd.read_excel(file_path, sheet_name='LIGIE', dtype=str)
     
     # 2. Carga HTS
-    hts = pd.read_excel(path, sheet_name='HTS', dtype=str)
+    hts = pd.read_excel(file_path, sheet_name='HTS', dtype=str)
     hts = hts.drop(columns=['#'], errors='ignore')
     hts = hts.drop(index=[0], errors='ignore')
     hts = hts.rename(columns={'EU IEEPA': 'Recíproco', 'Unnamed: 12' : 'Fentanilo'})
     hts = hts.ffill()
 
     # 3. Carga Datos Financieros (Participación)
-    part = pd.read_excel(path, sheet_name='Participación')
+    part = pd.read_excel(file_path, sheet_name='Participación')
     part['Date'] = pd.to_datetime(part['Date'])
     part['Subpartida'] = part['Subpartida'].astype(str).str.zfill(6)
     part.columns = part.columns.str.strip()
 
     # 4. Carga Aranceles Efectivos
     # Columnas esperadas: Subpartida, date, Mexico, China
-    aranceles = pd.read_excel(path, sheet_name='Aranceles efectivos')
+    aranceles = pd.read_excel(file_path, sheet_name='Aranceles efectivos')
     
     if 'date' in aranceles.columns:
         aranceles.rename(columns={'date': 'Date'}, inplace=True)
