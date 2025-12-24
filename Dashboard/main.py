@@ -42,7 +42,7 @@ def calculate_hts_sum(row):
 
 @st.cache_data
 def load_data():
-    path = '../data/manual/LIGIE_HTS_Dashboard.xlsx'
+    path = '/data/LIGIE_HTS_Dashboard.xlsx'
     
     # 1. Carga LIGIE
     ligie = pd.read_excel(path, sheet_name='LIGIE', dtype=str)
